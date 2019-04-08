@@ -122,12 +122,13 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
     { method: 'CONNECT'
     , path: options.host + ':' + options.port
     , agent: false
+    , timeout: self.options.timeout || 15000
     }
   )
   if (connectOptions.proxyAuth) {
     connectOptions.headers = connectOptions.headers || {}
     connectOptions.headers['Proxy-Authorization'] = 'Basic ' +
-        new Buffer(connectOptions.proxyAuth).toString('base64')
+        Buffer.from(connectOptions.proxyAuth).toString('base64')
   }
 
   debug('making CONNECT request')
@@ -137,7 +138,7 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
   connectReq.once('upgrade', onUpgrade)   // for v0.6
   connectReq.once('connect', onConnect)   // for v0.7 or later
   connectReq.once('error', onError)
-  connectReq.setTimeout(options.timeout || 15000, function(){
+  connectReq.once('timeout', function() {
     connectReq.abort();
   });
   connectReq.end()
